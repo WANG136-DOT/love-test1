@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测一测，TA是不是也在偷偷喜欢你</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 50%, #ff9a9e 100%);
+            min-height: 100vh;
+            font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+        }
+        .card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 24px;
+            box-shadow: 0 10px 40px rgba(255, 105, 135, 0.2);
+        }
+        .option-btn {
+            transition: all 0.2s ease;
+        }
+        .option-btn:active {
+            transform: scale(0.98);
+            background: #ffe4e6;
+        }
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+        .tag-item {
+            background: linear-gradient(90deg, #ff9a9e, #fecfef);
+            color: #fff;
+            border-radius: 20px;
+        }
+        .main-btn {
+            background: linear-gradient(90deg, #ff6b9d, #ff8e8e);
+            color: white;
+            border-radius: 50px;
+            box-shadow: 0 6px 20px rgba(255, 107, 157, 0.4);
+            transition: all 0.2s ease;
+        }
+        .main-btn:active {
+            transform: translateY(2px);
+            box-shadow: 0 3px 10px rgba(255, 107, 157, 0.3);
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="px-4 py-8 flex items-center justify-center">
+    <div class="w-full max-w-md mx-auto">
+        <!-- 首页落地页 -->
+        <div id="landing" class="card p-8 text-center fade-in">
+            <h1 class="text-2xl font-bold text-rose-600 mb-2">测一测，TA是不是也在偷偷喜欢你</h1>
+            <p class="text-gray-500 mb-6">凭你的心动细节，匹配TA的真实心意</p>
+            
+            <div class="grid grid-cols-2 gap-3 mb-8">
+                <div class="tag-item py-2 px-3 text-sm">心动细节 | 每个举动都有答案</div>
+                <div class="tag-item py-2 px-3 text-sm">聊天温度 | 回复速度藏着态度</div>
+                <div class="tag-item py-2 px-3 text-sm">暧昧浓度 | 你们现在到哪一步</div>
+                <div class="tag-item py-2 px-3 text-sm">心意解读 | TA心里到底怎么看你</div>
+            </div>
+
+            <button onclick="startQuiz()" class="main-btn w-full py-4 text-lg font-medium mb-4">
+                点击测试
+            </button>
+            <p class="text-xs text-gray-400">趣味测试仅供娱乐，别拿结果去质问他</p>
+        </div>
+
+        <!-- 答题页 -->
+        <div id="quiz" class="card p-6 hidden">
+            <!-- 进度条 -->
+            <div class="mb-6">
+                <div class="flex justify-between text-sm text-gray-500 mb-2">
+                    <span id="progress-text">第 1 题 / 共 32 题</span>
+                    <span id="progress-percent">3%</span>
+                </div>
+                <div class="w-full h-2 bg-rose-100 rounded-full overflow-hidden">
+                    <div id="progress-bar" class="progress-bar h-full bg-gradient-to-r from-rose-400 to-pink-400 rounded-full" style="width: 3%"></div>
+                </div>
+            </div>
+
+            <!-- 题目 -->
+            <h2 id="question-text" class="text-lg font-medium text-gray-800 mb-6 min-h-[60px]"></h2>
+
+            <!-- 选项 -->
+            <div id="options-container" class="space-y-3">
+                <!-- 选项动态生成 -->
+            </div>
+        </div>
+
+        <!-- 结果页 -->
+        <div id="result" class="card p-8 text-center hidden fade-in">
+            <div class="text-rose-500 text-sm mb-2">你的测试结果</div>
+            <h2 id="result-title" class="text-2xl font-bold text-rose-600 mb-4"></h2>
+            <p id="result-desc" class="text-gray-600 leading-relaxed mb-8 text-left"></p>
+            
+            <button onclick="restartQuiz()" class="main-btn w-full py-3 font-medium">
+                再测一次
+            </button>
+            <p class="text-xs text-gray-400 mt-4">趣味测试仅供娱乐</p>
+        </div>
+    </div>
+
+    <script>
+        // 10种结果定义
+        const resultTypes = {
+            both_way: {
+                title: "双向奔赴型 | 你俩就差一个人先开口",
+                desc: "恭喜解锁顶配结局！TA的小心思和你一模一样：聊天秒回、主动找话题、偷偷记你喜好全中，连暧昧节奏都踩得严丝合缝。现在就隔着一层薄窗户纸，谁先戳破谁就能收获甜甜的恋爱，别犹豫，冲就完事。"
+            },
+            secret_crush: {
+                title: "偷偷暗恋型 | TA也喜欢你，只是不敢说",
+                desc: "TA的喜欢全藏在细节里！不敢主动找你但每条消息都认真回，偷偷刷你朋友圈但不敢秒赞，朋友面前提你就耳朵红，明明在意得要死还要装成无所谓的样子，属于典型的嘴硬心软暗恋选手，再给点勇气就敢表白了。"
+            },
+            more_than_friend: {
+                title: "友达以上型 | 再靠近一点就变味了",
+                desc: "你们现在是比朋友亲一点、离恋人差一点的灰色地带，平时唠嗑打游戏都合拍，凑一块也有莫名的氛围感，但谁都没往恋爱那层深想。再多一点点主动、多一点点暧昧，关系随时可能“变质”。"
+            },
+            slow_warm: {
+                title: "慢热观望型 | 有感觉，但还在观察你",
+                desc: "TA对你确实有好感，不然不会花时间陪你聊天、跟你出门，但TA属于慢热谨慎型，不会随便确定心意。现在还在默默考察你的性格、三观，观察你们到底合不合适，别急，给TA点时间慢慢升温。"
+            },
+            pretend_calm: {
+                title: "故作镇定型 | 嘴上说没有，身体很诚实",
+                desc: "典型的口嫌体正直选手！嘴上跟朋友说“就是普通朋友”，但身体动作骗不了人：见面下意识收拾发型、你说话时盯着你眼睛、无意识往你身边凑，嘴硬得要死但心动藏都藏不住。"
+            },
+            pure_friend: {
+                title: "纯友谊型 | TA真的只把你当朋友",
+                desc: "别多想啦，TA心里你就是纯纯的好兄弟/好闺蜜，跟你相处完全没负担，啥掏心窝子的话都跟你说，完全没往恋爱方向想，主打一个坦荡的革命友谊，再脑补就是你的不对咯。"
+            },
+            ambiguous: {
+                title: "暧昧拉扯型 | 享受这个过程，就是不表态",
+                desc: "TA很享受现在暧昧的感觉，会主动撩你、说暧昧的话、跟你搞氛围感，但一提确定关系就打哈哈，既不拒绝也不主动，就喜欢这种你来我往的拉扯感，属于暧昧上头但不想落地型。"
+            },
+            polite: {
+                title: "礼貌友好型 | TA对谁都这样，别多想",
+                desc: "TA只是天生礼貌有教养，回你消息快是习惯、帮你忙是热心、跟你客气是素养，人家对同事朋友全是这个待遇，你不是特例也不是例外，别把人家的礼貌当成专属心动哦。"
+            },
+            signal_mismatch: {
+                title: "信号错位型 | 你的心动，TA根本没接收到",
+                desc: "属于典型的“你演了八百集，对方一集没看”，你偷偷脑补的各种心动细节，在TA眼里全是正常社交，你释放的好感信号TA完全没接住，甚至可能觉得你就是个热情的好朋友。"
+            },
+            not_time: {
+                title: "时机未到型 | 有戏，但眼下不是时候",
+                desc: "TA对你是有好感的，也不是没想过跟你发展，但现在要么是忙着学业工作、要么是刚结束上段感情没准备好，心里觉得时机不对，所以暂时没往恋爱上推进，等合适的时机大概率有戏。"
+            }
+        };
+
+        // 32道题目
+        const questions = [
+            {
+                question: "TA凌晨两点回你消息，你觉得真实原因是？",
+                options: [
+                    { text: "特意熬到点等你回复，怕打扰你又舍不得不回", score: "secret_crush" },
+                    { text: "刚好刷手机看到，秒回是因为也在想你", score: "both_way" },
+                    { text: "夜猫子routine，睡前统一回所有人消息", score: "polite" },
+                    { text: "你脑补了一出大戏，人家只是随手回的", score: "signal_mismatch" }
+                ]
+            },
+            {
+                question: "你们的聊天记录，通常是谁先结束对话？",
+                options: [
+                    { text: "基本都是等你说不聊了，TA才会收尾", score: "both_way" },
+                    { text: "经常聊到一半消失，第二天再主动接话", score: "pretend_calm" },
+                    { text: "谁困了谁先说晚安，完全不用客气", score: "more_than_friend" },
+                    { text: "每次都是TA发表情包客气收尾", score: "polite" }
+                ]
+            },
+            {
+                question: "TA主动找你聊天，最常开头的话是？",
+                options: [
+                    { text: "“刚刚看到个东西，觉得你肯定喜欢”", score: "both_way" },
+                    { text: "“在吗？没事，就是问问”", score: "secret_crush" },
+                    { text: "“打游戏不/出来吃不？”", score: "more_than_friend" },
+                    { text: "“等我忙完这阵找你唠”", score: "not_time" }
+                ]
+            },
+            {
+                question: "你发了一大段心里话，TA的回复是？",
+                options: [
+                    { text: "认真逐句回应，还会跟你说自己的想法", score: "both_way" },
+                    { text: "回得很谨慎，反复斟酌措辞的感觉", score: "slow_warm" },
+                    { text: "会说暧昧的安慰话，但不聊深层内容", score: "ambiguous" },
+                    { text: "回个抱抱表情包，劝你别想太多", score: "polite" }
+                ]
+            },
+            {
+                question: "你隔了半天回消息，TA的反应是？",
+                options: [
+                    { text: "秒回你，问你刚才是不是忙去了", score: "secret_crush" },
+                    { text: "跟没事人一样接着聊，完全不追问", score: "pretend_calm" },
+                    { text: "也隔半天回你，主打一个礼尚往来", score: "signal_mismatch" },
+                    { text: "事后跟你解释刚才在忙，怕你多想", score: "not_time" }
+                ]
+            },
+            {
+                question: "你们聊天时，会不会聊到彼此的感情观？",
+                options: [
+                    { text: "经常聊，还暗戳戳说自己的理想型是你这款", score: "ambiguous" },
+                    { text: "偶尔聊起，会认真问你喜欢什么样的人", score: "secret_crush" },
+                    { text: "聊过几次，总说现在还不想谈恋爱", score: "not_time" },
+                    { text: "几乎不聊，主打一个吃喝玩乐", score: "pure_friend" }
+                ]
+            },
+            {
+                question: "TA会不会主动跟你分享自己的糗事？",
+                options: [
+                    { text: "啥糗事都跟你说，完全不顾形象", score: "more_than_friend" },
+                    { text: "只会说一点点，还要嘴硬找补", score: "pretend_calm" },
+                    { text: "只跟你说开心的事，不好的都藏着", score: "secret_crush" },
+                    { text: "基本不说，相处都很客气", score: "polite" }
+                ]
+            },
+            {
+                question: "深夜emo的时候，TA会不会找你吐槽？",
+                options: [
+                    { text: "只会找你说，说只有你懂TA", score: "both_way" },
+                    { text: "会说一点，但总说不想把负面情绪带给你", score: "not_time" },
+                    { text: "会找你也会找别人，主打一个广撒网倾诉", score: "ambiguous" },
+                    { text: "从来不会，负面情绪都自己扛", score: "pure_friend" }
+                ]
+            },
+            {
+                question: "TA发一条新朋友圈，你通常多久点赞？",
+                options: [
+                    { text: "开了特别关心，秒赞", score: "both_way" },
+                    { text: "等个十几分钟再赞，怕太刻意", score: "pretend_calm" },
+                    { text: "刷到就赞，没刷到就算了", score: "more_than_friend" },
+                    { text: "基本不赞，偶尔看到才点", score: "pure_friend" }
+                ]
+            },
+            {
+                question: "你发了emo朋友圈，TA的反应是？",
+                options: [
+                    { text: "立马私戳你，问你怎么了", score: "secret_crush" },
+                    { text: "评论区留个安慰的话，不会私戳", score: "polite" },
+                    { text: "假装没看到，见面了再随口问", score: "pretend_calm" },
+                    { text: "点赞就过，以为你就是随便发发", score: "signal_mismatch" }
+                ]
+            },
+            {
+                question: "你发了自拍，TA的评论是哪种？",
+                options: [
+                    { text: "花式夸你，还会私戳说好看", score: "both_way" },
+                    { text: "损你两句，其实偷偷存图", score: "pretend_calm" },
+                    { text: "评论个“666”或者表情包", score: "more_than_friend" },
+                    { text: "从来不评论，最多点个赞", score: "slow_warm" }
+                ]
+            },
+            {
+                question: "TA的朋友圈里，有没有出现过你的身影？",
+                options: [
+                    { text: "有单独的合照，还特意修过你", score: "both_way" },
+                    { text: "大合照里有你，会特意把你拍好看", score: "secret_crush" },
+                    { text: "说现在不方便发，等以后再说", score: "not_time" },
+                    { text: "从来没出现过，也不发相关内容", score: "pure_friend" }
+                ]
+            },
+            {
+                question: "你换了新头像，TA多久会发现？",
+                options: [
+                    { text: "当天就找你说“你换头像啦”", score: "secret_crush" },
+                    { text: "见面的时候才会提一句", score: "slow_warm" },
+                    { text: "很久都发现不了", score: "signal_mismatch" },
+                    { text: "很久才发现，说最近太忙没注意", score: "not_time" }
+                ]
+            },
+            {
+                question: "你给TA评论朋友圈，TA多久回你？",
+                options: [
+                    { text: "秒回你评论，还会私戳接着聊", score: "both_way" },
+                    { text: "隔一会儿回，回复得很认真", score: "slow_warm" },
+                    { text: "统一回复所有人，不单独回你", score: "polite" },
+                    { text: "基本不回评论", score: "signal_mismatch" }
+                ]
+            },
+            {
+                question: "TA约你出门吃饭，常用的理由是？",
+                options: [
+                    { text: "“这家你之前说想吃，刚好我有空”", score: "both_way" },
+                    { text: "“多出来一张券，没人陪我去”", score: "secret_crush" },
+                    { text: "“刚好在你附近，凑个饭呗”", score: "more_than_friend" },
+                    { text: "“有个事想请你帮个忙”", score: "pure_friend" }
+                ]
+            },
+            {
+                question: "见面的时候，TA的穿着打扮比平时？",
+                options: [
+                    { text: "明显精致很多，还喷了香水", score: "secret_crush" },
+                    { text: "跟平时差不多，干净整洁就行", score: "more_than_friend" },
+                    { text: "嘴上说随便穿的，其实偷偷收拾过", score: "pretend_calm" },
+                    { text: "完全不讲究，怎么舒服怎么来", score: "pure_friend" }
+                ]
+            },
+            {
+                question: "吃饭的时候，TA会不会主动帮你夹菜？",
+                options: [
+                    { text: "会，还记得你不吃什么", score: "both_way" },
+                    { text: "偶尔会，夹完假装没事人", score: "pretend_calm" },
+                    { text: "大家一起分着吃，没特意照顾", score: "more_than_friend" },
+                    { text: "不会，各吃各的很客气", score: "polite" }
+                ]
+            },
+            {
+                question: "走路的时候，TA通常走在你的哪一侧？",
+                options: [
+                    { text: "走在靠马路的一侧，护着你", score: "secret_crush" },
+                    { text: "随便走，没特意注意位置", score: "pure_friend" },
+                    { text: "会刻意跟你保持一点距离", score: "slow_warm" },
+                    { text: "凑得很近，经常不小心碰到胳膊", score: "ambiguous" }
+                ]
+            },
+            {
+                question: "喝奶茶的时候，TA记得你的口味吗？",
+                options: [
+                    { text: "完全记得，糖度冰度分毫不差", score: "both_way" },
+                    { text: "大概记得，偶尔会记错", score: "slow_warm" },
+                    { text: "每次都要问一遍你喝什么", score: "polite" },
+                    { text: "记不住，反正自己喝自己的", score: "pure_friend" }
+                ]
+            },
+            {
+                question: "聚会结束晚了，TA会送你回家吗？",
+                options: [
+                    { text: "不管顺不顺路，都要送你到楼下", score: "secret_crush" },
+                    { text: "顺路就送，不顺路就帮你打车", score: "more_than_friend" },
+                    { text: "嘴上说不用送吧，脚步已经跟上了", score: "pretend_calm" },
+                    { text: "说今天不顺路，下次一定送你", score: "not_time" }
+                ]
+            },
+            {
+                question: "你们独处的时候，氛围通常是？",
+                options: [
+                    { text: "有点小尴尬，空气里都是暧昧味", score: "both_way" },
+                    { text: "很放松，啥都能唠不冷场", score: "more_than_friend" },
+                    { text: "偶尔冷场，TA会刻意找话题", score: "slow_warm" },
+                    { text: "跟朋友待着没区别，主打一个自在", score: "pure_friend" }
+                ]
+            },
+            {
+                question: "无意间碰到手，TA的第一反应是？",
+                options: [
+                    { text: "愣一下，然后假装没事不躲开", score: "secret_crush" },
+                    { text: "立马缩回去，然后耳朵红了", score: "pretend_calm" },
+                    { text: "完全不在意，该干嘛干嘛", score: "pure_friend" },
+                    { text: "故意多碰两下，还冲你笑", score: "ambiguous" }
+                ]
+            },
+            {
+                question: "朋友起哄你们俩，TA的反应是？",
+                options: [
+                    { text: "笑着不反驳，偷偷看你反应", score: "both_way" },
+                    { text: "嘴硬说“别瞎说”，但不生气", score: "pretend_calm" },
+                    { text: "跟着一起开玩笑，完全不介意", score: "more_than_friend" },
+                    { text: "你以为TA害羞，其实只是懒得解释", score: "signal_mismatch" }
+                ]
+            },
+            {
+                question: "TA跟共同朋友提起你的频率是？",
+                options: [
+                    { text: "经常提，啥事都能拐到你身上", score: "secret_crush" },
+                    { text: "偶尔提，都是说正事的时候提", score: "slow_warm" },
+                    { text: "很少提，基本不主动说", score: "signal_mismatch" },
+                    { text: "从来没提过", score: "pure_friend" }
+                ]
+            },
+            {
+                question: "你跟别的异性玩得好，TA的反应是？",
+                options: [
+                    { text: "明显吃醋，说话阴阳怪气的", score: "secret_crush" },
+                    { text: "嘴上说无所谓，其实偷偷打听", score: "pretend_calm" },
+                    { text: "完全没反应，还跟着一起玩", score: "pure_friend" },
+                    { text: "会调侃你，但不会多问", score: "more_than_friend" }
+                ]
+            },
+            {
+                question: "朋友局上，TA会不会特意坐你旁边？",
+                options: [
+                    { text: "一进门就找你旁边的位置", score: "both_way" },
+                    { text: "绕一圈最后坐你旁边，还说“刚好没座了”", score: "secret_crush" },
+                    { text: "随便坐，坐哪都一样", score: "pure_friend" },
+                    { text: "会坐得离你不远，但不会特意挨着", score: "slow_warm" }
+                ]
+            },
+            {
+                question: "节日的时候，TA给你发的祝福是？",
+                options: [
+                    { text: "专属定制的祝福，还提到你们的小事", score: "both_way" },
+                    { text: "卡点发祝福，文案是特意写的", score: "secret_crush" },
+                    { text: "复制粘贴的通用祝福", score: "polite" },
+                    { text: "从来不发节日祝福", score: "pure_friend" }
+                ]
+            },
+            {
+                question: "你说过的小事，TA会记得吗？",
+                options: [
+                    { text: "都记得，连你随口说的喜好都记着", score: "both_way" },
+                    { text: "记得一部分，重要的事不会忘", score: "slow_warm" },
+                    { text: "转头就忘，主打一个左耳进右耳出", score: "signal_mismatch" },
+                    { text: "会跟你打太极，不主动也不拒绝", score: "ambiguous" }
+                ]
+            },
+            {
+                question: "你感冒不舒服，TA的反应是？",
+                options: [
+                    { text: "直接给你送药送吃的到楼下", score: "both_way" },
+                    { text: "嘴上说多喝热水，转头给你点外卖", score: "pretend_calm" },
+                    { text: "会提醒你吃药休息", score: "polite" },
+                    { text: "说句保重，然后就没下文了", score: "pure_friend" }
+                ]
+            },
+            {
+                question: "你开玩笑说给TA介绍对象，TA的反应是？",
+                options: [
+                    { text: "立马拒绝，说自己有喜欢的人了", score: "secret_crush" },
+                    { text: "说不用，现在还不想谈恋爱", score: "not_time" },
+                    { text: "说好啊，要跟你差不多的就行", score: "ambiguous" },
+                    { text: "很开心，让你多介绍几个", score: "pure_friend" }
+                ]
+            },
+            {
+                question: "你们有没有专属的梗或者外号？",
+                options: [
+                    { text: "有很多，只有你们俩懂的那种", score: "both_way" },
+                    { text: "有一两个，偶尔会拿来开玩笑", score: "more_than_friend" },
+                    { text: "没有，都是正常称呼", score: "polite" },
+                    { text: "你起了外号，但TA没接茬", score: "signal_mismatch" }
+                ]
+            },
+            {
+                question: "下雨天共撑一把伞，TA会往你这边偏吗？",
+                options: [
+                    { text: "大半伞都在你这边，自己肩膀湿了", score: "secret_crush" },
+                    { text: "尽量不淋到你，但也不会太刻意", score: "slow_warm" },
+                    { text: "举中间，俩人各占一半", score: "more_than_friend" },
+                    { text: "自己顾自己，谁也别淋着谁", score: "pure_friend" }
+                ]
+            }
+        ];
+
+        let currentQuestion = 0;
+        let scores = {
+            both_way: 0,
+            secret_crush: 0,
+            more_than_friend: 0,
+            slow_warm: 0,
+            pretend_calm: 0,
+            pure_friend: 0,
+            ambiguous: 0,
+            polite: 0,
+            signal_mismatch: 0,
+            not_time: 0
+        };
+
+        const landingEl = document.getElementById('landing');
+        const quizEl = document.getElementById('quiz');
+        const resultEl = document.getElementById('result');
+        const questionTextEl = document.getElementById('question-text');
+        const optionsContainerEl = document.getElementById('options-container');
+        const progressTextEl = document.getElementById('progress-text');
+        const progressPercentEl = document.getElementById('progress-percent');
+        const progressBarEl = document.getElementById('progress-bar');
+        const resultTitleEl = document.getElementById('result-title');
+        const resultDescEl = document.getElementById('result-desc');
+
+        function startQuiz() {
+            landingEl.classList.add('hidden');
+            quizEl.classList.remove('hidden');
+            quizEl.classList.add('fade-in');
+            currentQuestion = 0;
+            // 重置分数
+            for (let key in scores) scores[key] = 0;
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const q = questions[currentQuestion];
+            questionTextEl.textContent = q.question;
+            
+            // 更新进度
+            const num = currentQuestion + 1;
+            const total = questions.length;
+            const percent = Math.round((num / total) * 100);
+            progressTextEl.textContent = `第 ${num} 题 / 共 ${total} 题`;
+            progressPercentEl.textContent = `${percent}%`;
+            progressBarEl.style.width = `${percent}%`;
+
+            // 渲染选项
+            optionsContainerEl.innerHTML = '';
+            q.options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'option-btn w-full text-left p-4 rounded-xl border border-rose-100 bg-rose-50 hover:bg-rose-100 text-gray-700';
+                btn.textContent = opt.text;
+                btn.onclick = () => selectOption(opt.score);
+                optionsContainerEl.appendChild(btn);
+            });
+        }
+
+        function selectOption(scoreKey) {
+            scores[scoreKey]++;
+            
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                renderQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            // 找出最高分
+            let maxScore = -1;
+            let maxKey = '';
+            for (let key in scores) {
+                if (scores[key] > maxScore) {
+                    maxScore = scores[key];
+                    maxKey = key;
+                }
+            }
+
+            const result = resultTypes[maxKey];
+            resultTitleEl.textContent = result.title;
+            resultDescEl.textContent = result.desc;
+
+            quizEl.classList.add('hidden');
+            resultEl.classList.remove('hidden');
+            resultEl.classList.add('fade-in');
+        }
+
+        function restartQuiz() {
+            resultEl.classList.add('hidden');
+            landingEl.classList.remove('hidden');
+            landingEl.classList.add('fade-in');
+        }
+    </script>
+</body>
+</html>
